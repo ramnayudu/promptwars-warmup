@@ -17,9 +17,10 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+const isConfigured = !!firebaseConfig.apiKey;
+const app = isConfigured ? (!getApps().length ? initializeApp(firebaseConfig) : getApp()) : null as any;
+const auth = isConfigured ? getAuth(app) : null as any;
+const db = isConfigured ? getFirestore(app) : null as any;
 
 export { app, auth, db };
 
@@ -30,7 +31,10 @@ export { app, auth, db };
  */
 export async function saveClaimToDatabase(claimData: Record<string, any>) {
   // Gracefully handle local dev without credentials
-  if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) return;
+  if (!isConfigured || !db) {
+    console.warn("Firebase credentials missing. Skipping DB persistence.");
+    return;
+  }
   
   try {
     const claimsRef = collection(db, "claims_processed");

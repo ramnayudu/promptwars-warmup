@@ -8,7 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Camera, FileText, UploadCloud, Search, MapPin, Download, CheckCircle, AlertTriangle, FileArchive, Languages, Loader2, ShieldCheck } from 'lucide-react';
 import { getDictionary, Language } from '@/shared/lib/i18n';
 import { saveClaimToDatabase } from '@/shared/api/firebase';
-import { Loader } from '@googlemaps/js-api-loader';
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 
 /**
  * ClaimProcessor Component
@@ -40,13 +40,11 @@ export default function ClaimProcessor() {
    */
   useEffect(() => {
     if (!cityInputRef.current) return;
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-      version: "weekly",
-      libraries: ["places"]
+    setOptions({
+      key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
     });
     
-    (loader as any).importLibrary("places").then((googleConfig: any) => {
+    importLibrary("places").then((googleConfig: any) => {
        const autocomplete = new googleConfig.Autocomplete(cityInputRef.current!, { types: ['(cities)'] });
        autocomplete.addListener('place_changed', () => {
          const place = autocomplete.getPlace();
