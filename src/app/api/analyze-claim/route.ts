@@ -2,7 +2,20 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getSecret } from '@/shared/config/secrets';
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from '@google/genai';
+import { Logging } from '@google-cloud/logging';
+import { BigQuery } from '@google-cloud/bigquery';
 
+/**
+ * Global API Clients initialized outside the request boundary
+ * to maximize Cloud Run container connection pooling.
+ */
+const logging = new Logging();
+const log = logging.log('claimbridge-evaluations');
+const bigquery = new BigQuery();
+
+/**
+ * Form Validator Schema utilizing Zod for strict type safety
+ */
 const RequestSchema = z.object({
   vehicleImageBase64: z.string().min(10), // Ensures basic data uri presence
   policyPdfBase64: z.string().min(10),
@@ -10,13 +23,18 @@ const RequestSchema = z.object({
   city: z.string().min(2)
 });
 
+/**
+ * Main AI Evaluation Route Handler
+ * Orchestrates multi-modal extraction via Vertex AI Gemini and persists
+ * operational metrics directly into Google Cloud Logging and BigQuery Analytics.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { vehicleImageBase64, policyPdfBase64, carModel, city } = RequestSchema.parse(body);
 
     const apiKey = await getSecret('GEMINI_API_KEY');
-    
+
     // Initialize the official Google Gen AI SDK
     const ai = new GoogleGenAI({ apiKey });
 
@@ -76,14 +94,28 @@ export async function POST(req: Request) {
 
     const resultText = response.text;
     if (!resultText) throw new Error("No response generated from Gemini.");
-    
+
     const parsed = JSON.parse(resultText);
 
+    // Asynchronously stream to Google Cloud Logging
+    const metadata = { resource: { type: 'cloud_run_revision' } };
+    const entry = log.entry(metadata, { event: 'Claim Processed', carModel, city, idv: parsed.idv });
+    log.write(entry).catch((e: Error) => console.warn('Cloud Logging bypass locally:', e.message));
+
+    // Asynchronously insert payload into BigQuery Data Warehouse
+    try {
+       const dataset = bigquery.dataset('claimbridge_analytics');
+       const table = dataset.table('processed_claims');
+       table.insert([{ carModel, city, idv: parsed.idv, timestamp: new Date().toISOString() }]).catch((e: Error) => console.warn('BigQuery bypass locally:', e.message));
+    } catch (e: any) {
+       console.warn("BigQuery dataset uninitialized locally");
+    }
+
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error) {
+  } catch (error: any) {
     console.error("[analyze-claim] Error:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to process the claim accurately." },
+      { success: false, error: error?.message || String(error) },
       { status: 500 }
     );
   }
