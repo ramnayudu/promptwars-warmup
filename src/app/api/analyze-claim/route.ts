@@ -4,6 +4,7 @@ import { getSecret } from '@/shared/config/secrets';
 import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from '@google/genai';
 import { Logging } from '@google-cloud/logging';
 import { BigQuery } from '@google-cloud/bigquery';
+import type { ClaimAnalysisResult } from '@/shared/types';
 
 /**
  * Global API Clients initialized outside the request boundary
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
 
     // Process using Gemini 3.1 Pro for complex multi-modal parsing and heavy logic
     const response = await ai.models.generateContent({
-      model: 'gemini-3.1-pro',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -70,7 +71,6 @@ export async function POST(req: Request) {
         }
       ],
       config: {
-        responseMimeType: "application/json",
         // Strict safety settings enforced to prevent prompt injection or toxic outputs
         safetySettings: [
           {
@@ -93,9 +93,12 @@ export async function POST(req: Request) {
     });
 
     const resultText = response.text;
-    if (!resultText) throw new Error("No response generated from Gemini.");
+    if (!resultText) throw new Error('No response generated from Gemini.');
 
-    const parsed = JSON.parse(resultText);
+    // Extract JSON from response (may be wrapped in markdown code fences)
+    const jsonMatch = resultText.match(/```(?:json)?\s*([\s\S]*?)```/) ?? [null, resultText];
+    const cleanJson = (jsonMatch[1] ?? resultText).trim();
+    const parsed: ClaimAnalysisResult = JSON.parse(cleanJson);
 
     // Asynchronously stream to Google Cloud Logging
     const metadata = { resource: { type: 'cloud_run_revision' } };
@@ -107,15 +110,16 @@ export async function POST(req: Request) {
        const dataset = bigquery.dataset('claimbridge_analytics');
        const table = dataset.table('processed_claims');
        table.insert([{ carModel, city, idv: parsed.idv, timestamp: new Date().toISOString() }]).catch((e: Error) => console.warn('BigQuery bypass locally:', e.message));
-    } catch (e: any) {
-       console.warn("BigQuery dataset uninitialized locally");
+    } catch (bqError: unknown) {
+       console.warn('BigQuery dataset uninitialized locally');
     }
 
     return NextResponse.json({ success: true, data: parsed });
-  } catch (error: any) {
-    console.error("[analyze-claim] Error:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[analyze-claim] Error:', error);
     return NextResponse.json(
-      { success: false, error: error?.message || String(error) },
+      { success: false, error: message },
       { status: 500 }
     );
   }
