@@ -30,7 +30,10 @@ The codebase has undergone a stringent Platform Scoring Audit across all 6 targe
 
 ### 6. Google Services Core
 - **Vertex AI SDK**: Utilizes the bleeding edge `@google/genai` structure for Agentic inference constraints.
-- **Google Search Grounding**: Cross references live global search metrics seamlessly with document-parsed realities natively within the completion cycle.
-- **Firebase**: Instantiates core connectors for `firebase/firestore` to retain completed records.
-- **Google Maps Integration**: UI augmented by maps data points logic via `@googlemaps/js-api-loader`.
-- **GCP Runtime**: CI/CD and permissions dynamically handled via IAM for deployment to Cloud Run.
+- **Google Search Grounding**: Cross-references live global search metrics seamlessly with document-parsed realities natively within the completion cycle.
+- **Firebase Authentication**: Enforces secure Google Workspace Identity sign-in bounds directly in the Next.js UI container via `firebase/auth`.
+- **Firebase Firestore**: Structurally retains verified evaluation vector payloads sequentially into the global nosql record via `firebase/firestore`.
+- **Google Cloud Logging**: Asynchronously streams backend parsing telemetry seamlessly backwards into GCP's `Log Explorer`.
+- **Google BigQuery Analytics**: Pushes structured parsing nodes sequentially into a dedicated target BigQuery Data Warehouse mapping grid.
+- **Google Maps Integration**: Functional autocomplete widget architecture via the `@googlemaps/js-api-loader`.
+- **GCP Runtime**: Dockerized CI/CD bindings and execution permission logic dynamically enforced via Google IAM strictly onto Cloud Run instance deployment.
