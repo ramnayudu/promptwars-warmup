@@ -27,6 +27,12 @@ export const dictionaries = {
 
 export type Language = keyof typeof dictionaries;
 
+/**
+ * Retrieves the compiled localization matrix mapping English or Hindi context keys.
+ * 
+ * @param lang Target Language string constraint ('en' or 'hi')
+ * @returns Static dictionary object mapping localization records
+ */
 export function getDictionary(lang: Language) {
   return dictionaries[lang];
 }

@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+/**
+ * Validates the vehicle license plate format dynamically
+ */
 const RequestSchema = z.object({
   licensePlate: z.string().min(4).max(15)
 });
 
+/**
+ * Handles VAHAN API mock validation for vehicle license plates.
+ * Returns simulated vehicle registration details used for downstream AI cross-referencing.
+ * 
+ * @param req Incoming HTTP Request
+ * @returns JSON Response containing the extracted mock VAHAN record
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json();
