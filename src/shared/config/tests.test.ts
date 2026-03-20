@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { getDictionary } from '@/shared/lib/i18n';
 import { getSecret } from '@/shared/config/secrets';
 
@@ -16,10 +16,13 @@ describe('i18n dictionary functionality', () => {
 });
 
 describe('secrets proxy configuration', () => {
-  it('falls back to process.env efficiently when in local dev', async () => {
-    process.env.NODE_ENV = 'development';
-    process.env.TEST_SECRET = 'LOCAL_VALUE';
-    const val = await getSecret('TEST_SECRET');
-    expect(val).toBe('LOCAL_VALUE');
+  it('falls back to environment variables in development correctly', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    process.env.GEMINI_API_KEY = 'test-local-key';
+    
+    const secret = await getSecret('GEMINI_API_KEY');
+    expect(secret).toBe('test-local-key');
+    
+    vi.unstubAllEnvs();
   });
 });
