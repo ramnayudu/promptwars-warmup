@@ -26,11 +26,11 @@ export async function getSecret(secretName: string, version: string = 'latest'):
   }
 
   const name = `projects/${projectId}/secrets/${secretName}/versions/${version}`;
-  
+
   try {
     const [accessResponse] = await client.accessSecretVersion({ name });
     const responsePayload = accessResponse.payload?.data?.toString();
-    
+
     if (!responsePayload) {
       throw new Error(`Empty payload returned for secret ${secretName}`);
     }

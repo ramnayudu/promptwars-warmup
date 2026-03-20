@@ -107,11 +107,11 @@ export async function POST(req: Request) {
 
     // Asynchronously insert payload into BigQuery Data Warehouse
     try {
-       const dataset = bigquery.dataset('claimbridge_analytics');
-       const table = dataset.table('processed_claims');
-       table.insert([{ carModel, city, idv: parsed.idv, timestamp: new Date().toISOString() }]).catch((e: Error) => console.warn('BigQuery bypass locally:', e.message));
+      const dataset = bigquery.dataset('claimbridge_analytics');
+      const table = dataset.table('processed_claims');
+      table.insert([{ carModel, city, idv: parsed.idv, timestamp: new Date().toISOString() }]).catch((e: Error) => console.warn('BigQuery bypass locally:', e.message));
     } catch (bqError: unknown) {
-       console.warn('BigQuery dataset uninitialized locally');
+      console.warn('BigQuery dataset uninitialized locally');
     }
 
     return NextResponse.json({ success: true, data: parsed });
