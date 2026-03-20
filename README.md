@@ -1,6 +1,6 @@
 # ClaimBridge 🚀
 
-ClaimBridge is a universal agentic bridge between Indian auto accident victims and the complex insurance ecosystem, powered natively natively by Google Cloud and Vertex AI.
+ClaimBridge is a Gemini-powered app designed for societal benefit by acting as a universal bridge between human intent and complex systems. It solves the crisis of insurance illiteracy in India by taking unstructured, messy, real-world inputs—including voice testimonies of accidents, photos of vehicle damage, and messy stacks of policy PDFs—and instantly converting them into structured, verified, and life-saving actions. By navigating the complex system of fine print and legal silos, ClaimBridge generates automated, fact-checked claim filings and evidence-backed appeals, ensuring a single accident does not lead to financial bankruptcy for the common citizen.
 
 ## Technical Merit (Hackathon Scoring Audit)
 
